@@ -11,13 +11,15 @@ namespace PowerPointFromImageFolder
     using D = DocumentFormat.OpenXml.Drawing;
 
 
-    public class EmptyPpt
+    public partial class PowerPointHelper 
     {
 
         // https://docs.microsoft.com/en-us/office/open-xml/how-to-create-a-presentation-document-by-providing-a-file-name?redirectedfrom=MSDN
         private static SlidePart CreateSlidePart(PresentationPart presentationPart)
-        {
+        { 
             SlidePart slidePart1 = presentationPart.AddNewPart<SlidePart>("rId2");
+            
+#if true  
             slidePart1.Slide = new Slide(
                     new CommonSlideData(
                         new ShapeTree(
@@ -37,7 +39,8 @@ namespace PowerPointFromImageFolder
                                     new ListStyle(),
                                     new Paragraph(new EndParagraphRunProperties() { Language = "en-US" }))))),
                     new ColorMapOverride(new MasterColorMapping()));
-            return slidePart1;
+#endif
+          return slidePart1;
         }
 
         private static SlideLayoutPart CreateSlideLayoutPart(SlidePart slidePart1)
@@ -255,7 +258,8 @@ namespace PowerPointFromImageFolder
         private static void CreatePresentationParts(PresentationPart presentationPart)
         {
             SlideMasterIdList slideMasterIdList1 = new SlideMasterIdList(new SlideMasterId() { Id = (UInt32Value)2147483648U, RelationshipId = "rId1" });
-            SlideIdList slideIdList1 = new SlideIdList(new SlideId() { Id = (UInt32Value)256U, RelationshipId = "rId2" });
+            // SlideIdList slideIdList1 = new SlideIdList(new SlideId() { Id = (UInt32Value)256U, RelationshipId = "rId2" });
+            SlideIdList slideIdList1 = new SlideIdList();
             SlideSize slideSize1 = new SlideSize() { Cx = 9144000, Cy = 6858000, Type = SlideSizeValues.Screen4x3 };
             NotesSize notesSize1 = new NotesSize() { Cx = 6858000, Cy = 9144000 };
             DefaultTextStyle defaultTextStyle1 = new DefaultTextStyle();

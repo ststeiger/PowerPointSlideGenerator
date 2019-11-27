@@ -10,31 +10,37 @@ namespace PowerPointFromImageFolder
         public static void TestEnumerator()
         {
             System.Collections.Generic.List<string> ls = new System.Collections.Generic.List<string>();
-            ls.Add("foo");
-            ls.Add("bar");
+            ls.Add("file1.pptx");
+            ls.Add("file2.pptx");
 
             System.Collections.Generic.IEnumerator<string> e = ls.GetEnumerator();
 
-            string file = null;
-
-            if (e.MoveNext())
+            // e.Current is NULL here 
+            if (!e.MoveNext())
             {
-                file = e.Current;
+                throw new System.Exception("No elements !");
             }
-
-            using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation =
-                DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(file, true))
+            
+            string file = file = e.Current;
+            
+            if (System.IO.File.Exists(file))
             {
-                System.Collections.Generic.IEnumerable<DocumentFormat.OpenXml.Packaging.SlidePart> slidePart = presentation
-                   .PresentationPart
-                   .SlideParts
-                    // .First() // Requires using System.Linq; 
-                ;
-            } // End Using presentation
-
-        }
+                
+                using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation =
+                    DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(file, true))
+                {
+                    System.Collections.Generic.IEnumerable<DocumentFormat.OpenXml.Packaging.SlidePart> slidePart = presentation
+                       .PresentationPart
+                       .SlideParts
+                        // .First() // Requires using System.Linq; 
+                    ;
+                } // End Using presentation
+                
+            } // End if (System.IO.File.Exists(file)) 
+            
+        } // End Sub TestEnumerator 
         
-
+        
         public static void AddImage(string file, string image)
         {
             using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation = DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(file, true))

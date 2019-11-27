@@ -2,85 +2,91 @@
 namespace PowerPointFromImageFolder
 {
 
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
-    using System.IO;
-    using System.Drawing;
-    using System.Drawing.Imaging;
+    
     using DocumentFormat.OpenXml;
     using DocumentFormat.OpenXml.Packaging;
-    using DocumentFormat.OpenXml.Presentation;
     using a = DocumentFormat.OpenXml.Drawing;
-    using DocumentFormat.OpenXml.Validation;
-
-
+    using DocumentFormat.OpenXml.Presentation;
+    
+    
     // https://docs.microsoft.com/en-us/previous-versions/office/developer/office-2007/ee412267(v=office.12)?redirectedfrom=MSDN
-    class FolderToPpt
+    public partial class PowerPointHelper
     {
-
-
-        public static void Test()
+        
+        // https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
+        // A DrawingML graphic's dimensions are specified in English Metric Units (EMUs).
+        // It is so called because it allows an exact common representation of dimensions originally in either English or Metric units.
+        // This unit is defined as 1/360,000 of a centimeter and thus there are 914,400 EMUs per inch, and 12,700 EMUs per point. 
+        public static int ToEmu(int pixel, int ppi)
         {
-            string newPresentation = "DeckFromImages.pptx";
-            string presentationTemplate = "PresentationTemplate.pptx";
-            string presentationFolder = @"C:\Temp\";
-            string imageFolder = @"C:\Temp";
+            return pixel * 914400 / ppi; 
+        }    
 
-            imageFolder = @"D:\username\Pictures\majdu\Steve";
-            presentationFolder = @"D:\";
-
-
-            string[] imageFileExtensions =
-              new[] { "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.png", "*.tif" };
-
-
-
-            // EmptyPpt.CreatePresentation(presentationFolder + presentationTemplate);
-
-            // Make a copy of the template presentation. This will throw an
-            // exception if the template presentation does not exist.
-            // File.Copy(presentationFolder + presentationTemplate, presentationFolder + newPresentation, true);
-
-            EmptyPpt.CreatePresentation(presentationFolder + newPresentation);
-
-
-
-            // Get the image files in the image folder.
-            List<string> imageFileNames = GetImageFileNames(imageFolder,
-              imageFileExtensions);
-
-            // Create new slides for the images.
-            if (imageFileNames.Count() > 0)
-                CreateSlides(imageFileNames,
-                  presentationFolder + newPresentation);
-
-            // Validate the new presentation.
-            OpenXmlValidator validator = new OpenXmlValidator();
-
-            using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation =
-                DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(presentationFolder + newPresentation, true))
+        
+        // 10692000 = 29.7cm
+        // 7560000 = 21cm
+        
+        public static int ToEmu(int pixel)
+        {
+            return ToEmu(pixel, 96);
+        }
+        
+        
+        public static void CreatePresentationFromImageFolder(string outputFile, string imageFolder)
+        {
+            // string presentationFolder = @"D:\";
+            // string presentationTemplate = "PresentationTemplate.pptx";
+            // PowerPointHelper.CreatePresentation(presentationFolder + presentationTemplate);
+            // Make a copy of the template presentation. 
+            // File.Copy(presentationFolder + presentationTemplate, outputFile, true);
+            
+            // Just create an empty powerpoint-file instead 
+            PowerPointHelper.CreatePresentation(outputFile);
+            
+            
+            string[] imageFileExtensions = new string[]
             {
-                IEnumerable<ValidationErrorInfo> errors = validator.Validate(presentation);
-
+                "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.png", "*.tif"
+            };
+            
+            // Get the image files in the image folder.
+            System.Collections.Generic.List<string> imageFileNames = GetImageFileNames(imageFolder,
+              imageFileExtensions);
+            
+            // Create new slides for the images.
+            if (imageFileNames.Count > 0)
+                CreateSlides(imageFileNames, outputFile);
+            
+            // Validate the new presentation.
+            DocumentFormat.OpenXml.Validation.OpenXmlValidator validator = 
+                new DocumentFormat.OpenXml.Validation.OpenXmlValidator();
+            
+            using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation =
+                DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(outputFile, true))
+            {
+                System.Collections.Generic.IEnumerable<DocumentFormat.OpenXml.Validation.ValidationErrorInfo> errors = validator.Validate(presentation);
+                
                 if (errors.Count() > 0)
                 {
-                    Console.WriteLine("The deck creation process completed but " +
+                    System.Console.WriteLine("The deck creation process completed but " +
                       "the created presentation failed to validate.");
-                    Console.WriteLine("There are " + errors.Count() +
+                    System.Console.WriteLine("There are " + errors.Count() +
                       " errors:\r\n");
-
+                    
                     DisplayValidationErrors(errors);
                 }
                 else
-                    Console.WriteLine("The deck creation process completed and " +
+                    System.Console.WriteLine("The deck creation process completed and " +
                       "the created presentation validated with 0 errors.");
             } // End Using presentation 
-
+            
         } // End Sub Test 
-
-
-        static void CreateSlides(List<string> imageFileNames, string newPresentation)
+        
+        
+        static void CreateSlides(
+              System.Collections.Generic.List<string> imageFileNames
+            , string newPresentation)
         {
             string relId;
             SlideId slideId;
@@ -88,8 +94,8 @@ namespace PowerPointFromImageFolder
             // Slide identifiers have a minimum value of greater than or
             // equal to 256 and a maximum value of less than 2147483648.
             // Assume that the template presentation being used has no slides.
-            // uint currentSlideId = 256;
-            uint currentSlideId = 256+1;
+            uint currentSlideId = 256;
+            // uint currentSlideId = 256+1;
 
             string imageFileNameNoPath;
 
@@ -122,7 +128,7 @@ namespace PowerPointFromImageFolder
                 foreach (string imageFileNameWithPath in imageFileNames)
                 {
                     imageFileNameNoPath =
-                      Path.GetFileNameWithoutExtension(imageFileNameWithPath);
+                      System.IO.Path.GetFileNameWithoutExtension(imageFileNameWithPath);
 
                     // Create a unique relationship id based on the current
                     // slide id.
@@ -174,20 +180,21 @@ namespace PowerPointFromImageFolder
         } // End Sub CreateSlides 
 
 
-        public static List<string> GetImageFileNames(string imageFolder,
+        private static System.Collections.Generic.List<string> GetImageFileNames(string imageFolder,
           string[] imageFileExtensions)
         {
             // Create a list to hold the names of the files with the
             // requested extensions.
-            List<string> fileNames = new List<string>();
+            System.Collections.Generic.List<string> fileNames = 
+                new System.Collections.Generic.List<string>();
 
             // Loop through each file extension.
             foreach (string extension in imageFileExtensions)
             {
                 // Add all the files that match the current extension to the
                 // list of file names.
-                fileNames.AddRange(Directory.GetFiles(imageFolder, extension,
-                  SearchOption.TopDirectoryOnly));
+                fileNames.AddRange(System.IO.Directory.GetFiles(imageFolder, extension,
+                    System.IO.SearchOption.TopDirectoryOnly));
             } // Next extension 
 
             // Return the list of file names.
@@ -205,12 +212,12 @@ namespace PowerPointFromImageFolder
             // Open a stream on the image file and read it's contents. The
             // following code will generate an exception if an invalid file
             // name is passed.
-            using (FileStream fsImageFile = File.OpenRead(imageFilePath))
+            using (System.IO.FileStream fsImageFile = System.IO.File.OpenRead(imageFilePath))
             {
                 imageFileBytes = new byte[fsImageFile.Length];
                 fsImageFile.Read(imageFileBytes, 0, imageFileBytes.Length);
 
-                using (Bitmap imageFile = new Bitmap(fsImageFile))
+                using (System.Drawing.Bitmap imageFile = new System.Drawing.Bitmap(fsImageFile))
                 {
                     // Determine the format of the image file. This sample code
                     // supports working with the following types of image files:
@@ -221,19 +228,19 @@ namespace PowerPointFromImageFolder
                     // Portable Network Graphics (PNG)
                     // Tagged Image File Format (TIFF)
 
-                    if (imageFile.RawFormat.Guid == ImageFormat.Bmp.Guid)
+                    if (imageFile.RawFormat.Guid == System.Drawing.Imaging.ImageFormat.Bmp.Guid)
                         imagePartType = ImagePartType.Bmp;
-                    else if (imageFile.RawFormat.Guid == ImageFormat.Gif.Guid)
+                    else if (imageFile.RawFormat.Guid == System.Drawing.Imaging.ImageFormat.Gif.Guid)
                         imagePartType = ImagePartType.Gif;
-                    else if (imageFile.RawFormat.Guid == ImageFormat.Jpeg.Guid)
+                    else if (imageFile.RawFormat.Guid == System.Drawing.Imaging.ImageFormat.Jpeg.Guid)
                         imagePartType = ImagePartType.Jpeg;
-                    else if (imageFile.RawFormat.Guid == ImageFormat.Png.Guid)
+                    else if (imageFile.RawFormat.Guid == System.Drawing.Imaging.ImageFormat.Png.Guid)
                         imagePartType = ImagePartType.Png;
-                    else if (imageFile.RawFormat.Guid == ImageFormat.Tiff.Guid)
+                    else if (imageFile.RawFormat.Guid == System.Drawing.Imaging.ImageFormat.Tiff.Guid)
                         imagePartType = ImagePartType.Tiff;
                     else
                     {
-                        throw new ArgumentException(
+                        throw new System.ArgumentException(
                           "Unsupported image file format: " + imageFilePath);
                     }
 
@@ -253,15 +260,11 @@ namespace PowerPointFromImageFolder
 
             return imageFileBytes;
         } // End Function GetImageData 
-
-
-        private static System.Random s_rand = new System.Random();
-
+        
+        
         private static Slide GenerateSlidePart(string imageName,
           string imageDescription, long imageWidthEMU, long imageHeightEMU)
         {
-            UInt32Value randomValue = new UInt32Value((uint)s_rand.Next(0, int.MaxValue));
-
             Slide element =
               new Slide(
                 new CommonSlideData(
@@ -269,8 +272,7 @@ namespace PowerPointFromImageFolder
                     new NonVisualGroupShapeProperties(
                       new NonVisualDrawingProperties()
                       {
-                          Id = (UInt32Value)1U
-                          // Id = randomValue
+                          Id = (UInt32Value)1U 
                         , Name = ""
                       },
                       new NonVisualGroupShapeDrawingProperties(),
@@ -286,7 +288,6 @@ namespace PowerPointFromImageFolder
                         new NonVisualDrawingProperties()
                         {
                             Id = (UInt32Value)4U,
-                            //Id = randomValue,
                             Name = imageName,
                             Description = imageDescription
                         },
@@ -321,7 +322,7 @@ namespace PowerPointFromImageFolder
           byte[] imageFileBytes)
         {
             // Write the contents of the image to the ImagePart.
-            using (BinaryWriter writer = new BinaryWriter(part.GetStream()))
+            using (System.IO.BinaryWriter writer = new System.IO.BinaryWriter(part.GetStream()))
             {
                 writer.Write(imageFileBytes);
                 writer.Flush();
@@ -329,17 +330,17 @@ namespace PowerPointFromImageFolder
         }
 
         static void DisplayValidationErrors(
-          IEnumerable<ValidationErrorInfo> errors)
+            System.Collections.Generic.IEnumerable<DocumentFormat.OpenXml.Validation.ValidationErrorInfo> errors)
         {
             int errorIndex = 1;
 
-            foreach (ValidationErrorInfo errorInfo in errors)
+            foreach (DocumentFormat.OpenXml.Validation.ValidationErrorInfo errorInfo in errors)
             {
-                Console.WriteLine(errorInfo.Description);
-                Console.WriteLine(errorInfo.Path.XPath);
+                System.Console.WriteLine(errorInfo.Description);
+                System.Console.WriteLine(errorInfo.Path.XPath);
 
                 if (++errorIndex <= errors.Count())
-                    Console.WriteLine("================");
+                    System.Console.WriteLine("================");
             } // Next errorInfo 
 
         } // End Sub DisplayValidationErrors 
