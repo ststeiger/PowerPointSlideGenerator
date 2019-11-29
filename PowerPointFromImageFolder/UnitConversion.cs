@@ -1,5 +1,8 @@
 namespace PowerPointFromImageFolder
 {
+
+    // https://support.office.com/en-us/article/change-the-size-of-your-slides-040a811c-be43-40b9-8d04-0de5ed79987e
+    // http://lcorneliussen.de/raw/dashboards/ooxml/
     public class UnitConversion
     {
         
@@ -52,4 +55,6 @@ namespace PowerPointFromImageFolder
 
 
     }
+
+
 }

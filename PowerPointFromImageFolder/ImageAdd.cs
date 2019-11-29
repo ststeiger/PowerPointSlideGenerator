@@ -18,26 +18,30 @@ namespace PowerPointFromImageFolder
             // e.Current is NULL here 
             if (!e.MoveNext())
             {
-                throw new System.Exception("No elements !");
+                throw new System.Exception("No files !");
             }
-            
-            string file = file = e.Current;
-            
-            if (System.IO.File.Exists(file))
+
+            do
             {
-                
-                using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation =
-                    DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(file, true))
+                string file = file = e.Current;
+
+                if (System.IO.File.Exists(file))
                 {
-                    System.Collections.Generic.IEnumerable<DocumentFormat.OpenXml.Packaging.SlidePart> slidePart = presentation
-                       .PresentationPart
-                       .SlideParts
+
+                    using (DocumentFormat.OpenXml.Packaging.PresentationDocument presentation =
+                        DocumentFormat.OpenXml.Packaging.PresentationDocument.Open(file, true))
+                    {
+                        System.Collections.Generic.IEnumerable<DocumentFormat.OpenXml.Packaging.SlidePart> slidePart = presentation
+                           .PresentationPart
+                           .SlideParts
                         // .First() // Requires using System.Linq; 
-                    ;
-                } // End Using presentation
-                
-            } // End if (System.IO.File.Exists(file)) 
-            
+                        ;
+                    } // End Using presentation
+
+                } // End if (System.IO.File.Exists(file)) 
+
+            } while (e.MoveNext());
+
         } // End Sub TestEnumerator 
         
         

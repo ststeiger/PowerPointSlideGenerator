@@ -1,6 +1,4 @@
 ﻿
-using System;
-
 namespace PowerPointFromImageFolder
 {
 
@@ -122,8 +120,8 @@ namespace PowerPointFromImageFolder
 
                     // Get the bytes, type and size of the image.
                     ImagePartType imagePartType = ImagePartType.Png;
-                    byte[] imageBytes = GetImageData(imageFileNameWithPath,
-                      ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
+                    byte[] imageBytes = GetImageData(imageFileNameWithPath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
+                    
 
                     // Create a slide part for the new slide.
                     SlidePart slidePart = presentationPart.AddNewPart<SlidePart>(relId);
@@ -188,7 +186,101 @@ namespace PowerPointFromImageFolder
         } // End Function GetImageFileNames 
 
 
-        private static byte[] GetImageData(string imageFilePath,
+        /// <summary>
+        /// Resize the image to the specified width and height.
+        /// </summary>
+        /// <param name="image">The image to resize.</param>
+        /// <param name="width">The width to resize to.</param>
+        /// <param name="height">The height to resize to.</param>
+        /// <returns>The resized image.</returns>
+        public static System.Drawing.Bitmap ResizeImage(System.Drawing.Image image, int width, int height)
+        {
+            System.Drawing.Rectangle destRect = new System.Drawing.Rectangle(0, 0, width, height);
+            System.Drawing.Bitmap destImage = new System.Drawing.Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
+                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.HighQuality;
+
+                using (System.Drawing.Imaging.ImageAttributes wrapMode = new System.Drawing.Imaging.ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(System.Drawing.Drawing2D.WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, System.Drawing.GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
+        }
+
+
+        private static System.Drawing.Size ExpandToBound(int source_width, int source_height, int box_width, int box_height)
+        {
+            double widthScale = 0, heightScale = 0;
+
+            if (source_width != 0)
+                widthScale = (double)box_width / (double)source_width;
+
+            if (source_height != 0)
+                heightScale = (double)box_height / (double)source_height;
+
+            double scale = System.Math.Min(widthScale, heightScale);
+
+            System.Drawing.Size result = new System.Drawing.Size((int)(source_width * scale),
+                                (int)(source_height * scale));
+            return result;
+        }
+
+
+        private static byte[] GetMaxSizeImageData(string imageFilePath,
+            ref ImagePartType imagePartType, ref long imageWidthEMU,
+            ref long imageHeightEMU)
+        {
+            byte[] imageFileBytes;
+            // Bitmap imageFile;
+
+
+            using (System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(imageFilePath))
+            {
+                double inchesX = sourceImage.Width / sourceImage.HorizontalResolution;
+                double inchesY = sourceImage.Height / sourceImage.VerticalResolution;
+
+                int emuX = (int)(inchesX * 914400);
+                int emuY = (int)(inchesY * 914400);
+
+                System.Drawing.Size sz = ExpandToBound(emuX, emuY, EmuPaperSize.Screen4x3.EmuX, EmuPaperSize.Screen4x3.EmuY);
+
+                imageWidthEMU = sz.Width;
+                imageHeightEMU = sz.Height;
+
+                int new_width = (int)((double)sz.Width / (double)914400 * sourceImage.HorizontalResolution);
+                int new_height = (int)((double)sz.Height / (double)914400 * sourceImage.VerticalResolution);
+
+                using (System.Drawing.Bitmap imageFile = ResizeImage(sourceImage, new_width, new_height))
+                {
+
+                    using (System.IO.MemoryStream ms = new System.IO.MemoryStream())
+                    {
+                        imageFile.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                        imageFileBytes = ms.ToArray();
+                    }
+
+                    imagePartType = ImagePartType.Png;
+                }
+
+            }
+
+            return imageFileBytes;
+        }
+
+
+
+        private static byte[] GetOriginalImageData(string imageFilePath,
           ref ImagePartType imagePartType, ref long imageWidthEMU,
           ref long imageHeightEMU)
         {
@@ -246,8 +338,36 @@ namespace PowerPointFromImageFolder
 
             return imageFileBytes;
         } // End Function GetImageData 
-        
-        
+
+
+
+        private static byte[] GetImageData(string imageFilePath,
+            ref ImagePartType imagePartType, ref long imageWidthEMU,
+            ref long imageHeightEMU)
+        {
+            byte[] imageBytes;
+
+            int emuX = 0;
+            int emuY = 0;
+
+            using (System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(imageFilePath))
+            {
+                double inchesX = sourceImage.Width / sourceImage.HorizontalResolution;
+                double inchesY = sourceImage.Height / sourceImage.VerticalResolution;
+
+                emuX = (int)(inchesX * 914400);
+                emuY = (int)(inchesY * 914400);
+            }
+
+            if (emuX > EmuPaperSize.Screen4x3.EmuX || emuY> EmuPaperSize.Screen4x3.EmuY) // only resize if the image is > paper 
+                imageBytes = GetMaxSizeImageData(imageFilePath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
+            else
+                imageBytes = GetOriginalImageData(imageFilePath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
+
+            return imageBytes;
+        }
+
+
         private static Slide GenerateSlidePart(string imageName,
           string imageDescription, long imageWidthEMU, long imageHeightEMU)
         {
