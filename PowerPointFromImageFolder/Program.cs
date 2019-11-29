@@ -14,11 +14,11 @@ namespace PowerPointFromImageFolder
             
             string imageFolder = @"D:\username\Pictures\majdu\Steve";
             if(System.Environment.OSVersion.Platform == System.PlatformID.Unix)
-                imageFolder = @"/root/Pictures/";
+                imageFolder = @"/home/username/Pictures/";
             
             string outputFile = @"D:\PictureGallery.pptx";
             if (System.Environment.OSVersion.Platform == System.PlatformID.Unix)
-                outputFile = @"/root/Pictures/PictureGallery.pptx";
+                outputFile = @"/home/username/PictureGallery.pptx";
             
             PowerPointHelper.CreatePresentationFromImageFolder(outputFile, imageFolder);
             
