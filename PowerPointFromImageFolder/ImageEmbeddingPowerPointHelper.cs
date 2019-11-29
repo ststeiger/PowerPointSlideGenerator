@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace PowerPointFromImageFolder
 {
 
@@ -8,29 +10,13 @@ namespace PowerPointFromImageFolder
     using DocumentFormat.OpenXml.Packaging;
     using a = DocumentFormat.OpenXml.Drawing;
     using DocumentFormat.OpenXml.Presentation;
-    
-    
+
+
+
+
     // https://docs.microsoft.com/en-us/previous-versions/office/developer/office-2007/ee412267(v=office.12)?redirectedfrom=MSDN
     public partial class PowerPointHelper
     {
-        
-        // https://en.wikipedia.org/wiki/Office_Open_XML_file_formats
-        // A DrawingML graphic's dimensions are specified in English Metric Units (EMUs).
-        // It is so called because it allows an exact common representation of dimensions originally in either English or Metric units.
-        // This unit is defined as 1/360,000 of a centimeter and thus there are 914,400 EMUs per inch, and 12,700 EMUs per point. 
-        public static int ToEmu(int pixel, int ppi)
-        {
-            return pixel * 914400 / ppi; 
-        }    
-
-        
-        // 10692000 = 29.7cm
-        // 7560000 = 21cm
-        
-        public static int ToEmu(int pixel)
-        {
-            return ToEmu(pixel, 96);
-        }
         
         
         public static void CreatePresentationFromImageFolder(string outputFile, string imageFolder)
