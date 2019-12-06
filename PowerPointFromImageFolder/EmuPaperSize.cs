@@ -3,6 +3,40 @@ namespace PowerPointFromImageFolder
 {
 
 
+    public static class EmuPaperSizeExtension
+    {
+
+
+        public static EmuPaperSize FromSlideSize(this DocumentFormat.OpenXml.Presentation.SlideSizeValues slideSize)
+        {
+            switch (slideSize)
+            {
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Screen4x3: return EmuPaperSize.Screen4x3;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Letter: return EmuPaperSize.Letter;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.A4: return EmuPaperSize.A4;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Film35mm: return EmuPaperSize.Film35mm;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Overhead: return EmuPaperSize.Overhead;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Banner: return EmuPaperSize.Banner;
+                // case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Custom: return EmuPaperSize.Custom;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Ledger: return EmuPaperSize.Ledger;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.A3: return EmuPaperSize.A3;
+                //case DocumentFormat.OpenXml.Presentation.SlideSizeValues.B4ISO: return EmuPaperSize.B4ISO;
+                //case DocumentFormat.OpenXml.Presentation.SlideSizeValues.B5ISO: return EmuPaperSize.B5ISO;
+                //case DocumentFormat.OpenXml.Presentation.SlideSizeValues.B4JIS: return EmuPaperSize.B4JIS;
+                //case DocumentFormat.OpenXml.Presentation.SlideSizeValues.B5JIS: return EmuPaperSize.B5JIS;
+                //case DocumentFormat.OpenXml.Presentation.SlideSizeValues.HagakiCard: return EmuPaperSize.HagakiCard;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Screen16x9: return EmuPaperSize.Screen16x9;
+                case DocumentFormat.OpenXml.Presentation.SlideSizeValues.Screen16x10: return EmuPaperSize.Screen16x10;
+                default:break;
+            }
+            
+            return EmuPaperSize.A4;
+        }
+    }
+
+
+
+
     public class EmuPaperSize
     {
         public int EmuX;

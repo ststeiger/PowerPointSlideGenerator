@@ -18,7 +18,7 @@ namespace PowerPointFromImageFolder
             if (System.Environment.OSVersion.Platform == System.PlatformID.Unix)
                 outputFile = @"/home/username/PictureGallery.pptx";
             
-            PowerPointHelper.CreatePresentationFromImageFolder(outputFile, imageFolder);
+            PowerPointHelper.CreatePresentationFromImageFolder(outputFile, imageFolder, EmuPaperSize.Film35mm);
             
             System.Console.WriteLine(" --- Press any key to continue --- ");
             System.Console.ReadKey();

@@ -17,7 +17,7 @@ namespace PowerPointFromImageFolder
     {
         
         
-        public static void CreatePresentationFromImageFolder(string outputFile, string imageFolder)
+        public static void CreatePresentationFromImageFolder(string outputFile, string imageFolder, EmuPaperSize paperSize)
         {
             // string presentationFolder = @"D:\";
             // string presentationTemplate = "PresentationTemplate.pptx";
@@ -26,7 +26,7 @@ namespace PowerPointFromImageFolder
             // File.Copy(presentationFolder + presentationTemplate, outputFile, true);
             
             // Just create an empty powerpoint-file instead 
-            PowerPointHelper.CreatePresentation(outputFile);
+            PowerPointHelper.CreatePresentation(outputFile, paperSize);
             
             
             string[] imageFileExtensions = new string[]
@@ -40,7 +40,7 @@ namespace PowerPointFromImageFolder
             
             // Create new slides for the images.
             if (imageFileNames.Count > 0)
-                CreateSlides(imageFileNames, outputFile);
+                CreateSlides(imageFileNames, outputFile, paperSize);
             
             // Validate the new presentation.
             DocumentFormat.OpenXml.Validation.OpenXmlValidator validator = 
@@ -70,7 +70,7 @@ namespace PowerPointFromImageFolder
         
         static void CreateSlides(
               System.Collections.Generic.List<string> imageFileNames
-            , string newPresentation)
+            , string newPresentation, EmuPaperSize paperSize)
         {
             string relId;
             SlideId slideId;
@@ -120,7 +120,7 @@ namespace PowerPointFromImageFolder
 
                     // Get the bytes, type and size of the image.
                     ImagePartType imagePartType = ImagePartType.Png;
-                    byte[] imageBytes = GetImageData(imageFileNameWithPath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
+                    byte[] imageBytes = GetImageData(imageFileNameWithPath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU, paperSize);
                     
 
                     // Create a slide part for the new slide.
@@ -237,7 +237,7 @@ namespace PowerPointFromImageFolder
         }
 
 
-        private static byte[] GetMaxSizeImageData(string imageFilePath,
+        private static byte[] GetMaxSizeImageData(EmuPaperSize paperFormat, string imageFilePath,
             ref ImagePartType imagePartType, ref long imageWidthEMU,
             ref long imageHeightEMU)
         {
@@ -253,7 +253,7 @@ namespace PowerPointFromImageFolder
                 int emuX = (int)(inchesX * 914400);
                 int emuY = (int)(inchesY * 914400);
 
-                System.Drawing.Size sz = ExpandToBound(emuX, emuY, EmuPaperSize.Screen4x3.EmuX, EmuPaperSize.Screen4x3.EmuY);
+                System.Drawing.Size sz = ExpandToBound(emuX, emuY, paperFormat.EmuX, paperFormat.EmuY);
 
                 imageWidthEMU = sz.Width;
                 imageHeightEMU = sz.Height;
@@ -268,15 +268,15 @@ namespace PowerPointFromImageFolder
                     {
                         imageFile.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
                         imageFileBytes = ms.ToArray();
-                    }
+                    } // End Using ms 
 
                     imagePartType = ImagePartType.Png;
-                }
+                } // End Using imageFile 
 
-            }
+            } // End Using sourceImage 
 
             return imageFileBytes;
-        }
+        } // End Function GetMaxSizeImageData 
 
 
 
@@ -337,18 +337,19 @@ namespace PowerPointFromImageFolder
             } // End Using fsImageFile 
 
             return imageFileBytes;
-        } // End Function GetImageData 
-
+        } // End Function GetOriginalImageData 
 
 
         private static byte[] GetImageData(string imageFilePath,
             ref ImagePartType imagePartType, ref long imageWidthEMU,
-            ref long imageHeightEMU)
+            ref long imageHeightEMU, EmuPaperSize paperSize)
         {
             byte[] imageBytes;
 
             int emuX = 0;
             int emuY = 0;
+
+
 
             using (System.Drawing.Image sourceImage = System.Drawing.Image.FromFile(imageFilePath))
             {
@@ -359,8 +360,8 @@ namespace PowerPointFromImageFolder
                 emuY = (int)(inchesY * 914400);
             }
 
-            if (emuX > EmuPaperSize.Screen4x3.EmuX || emuY> EmuPaperSize.Screen4x3.EmuY) // only resize if the image is > paper 
-                imageBytes = GetMaxSizeImageData(imageFilePath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
+            if (emuX > paperSize.EmuX || emuY> paperSize.EmuY) // only resize if the image is > paper 
+                imageBytes = GetMaxSizeImageData(paperSize, imageFilePath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
             else
                 imageBytes = GetOriginalImageData(imageFilePath, ref imagePartType, ref imageWidthEMU, ref imageHeightEMU);
 
